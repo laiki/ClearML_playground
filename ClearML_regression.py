@@ -26,20 +26,20 @@ def main():
     tickerDf_Change.columns += '_pcent'
     
     df = pd.concat([tickerDf.Close, tickerDf_Change.Close_pcent], axis=1)
-    #setattr(df, 'ticker', args.symbol)          
-    #fig = plot_(df, show=False)         
-    fig = px.line(df, title=args.symbol)
+    setattr(df, 'ticker', args.symbol)
+    fig = plot_(df, show=True)
     task.get_logger().report_plotly(title='finance', series=args.symbol, iteration=0, figure=fig)
-    fig.show()
+
     return
 
 
 def plot_(df, show=False):
     import plotly.io as pio
-    #pio.renderers.default='browser'
-    pio.renderers.default='svg'
+    pio.renderers.default='browser'
+    #pio.renderers.default='svg'
     fig = px.line(df, title=getattr(df, 'ticker'))
     if show: fig.show()
+
     return fig
 
 #%%
