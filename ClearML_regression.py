@@ -69,6 +69,7 @@ def process(param, df, symbol, attrib='Close', shift=1, plot=False):
     fig = plot_(df_plot, show=plot)
     task.get_logger().report_plotly(title='finance', series=symbol, iteration=0, figure=fig)
 
+    iteration = 0
     for p in param:
         if True == param[p]:
             if 'LinearRegression' == p:
@@ -88,9 +89,11 @@ def process(param, df, symbol, attrib='Close', shift=1, plot=False):
             assert (0 == res_test.isna().sum().sum())
             setattr(res_test, 'ticker', symbol)
             fig = plot_(res_test, show=True)
-            task.get_logger().report_plotly(title='finance', series='reality vs prediction', iteration=0, figure=fig)
+            task.get_logger().report_plotly(title='finance', series=f'{p}: reality vs prediction',
+                                            iteration=iteration, figure=fig)
             mse = mean_squared_error(y_test, y_pred)
             print(f'{p} mean squared error: {round(mse, 3)} ')
+            iteration += 1
 
     return
 
