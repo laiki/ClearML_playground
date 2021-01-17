@@ -17,21 +17,20 @@ task = Task.init(project_name='first ClearML steps', task_name='finance')
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--symbol', help='symbol used for regression', default='AAPL')
-    args = parser.parse_args()
+    args = parser.parse_known_args()
 
-    tickerData      = yf.Ticker(args.symbol)
+    parameters = {
+        'LinearRegression': True,
+        'Ridge': False,
+        'SVR': False,
+    }
+    parameters = task.connect_configuration(configuration=parameters, name='regressor selection',
+                                            description='set which regressor to run')
+    tickerData      = yf.Ticker(args[0].symbol)
     tickerDf        = tickerData.history(period='max', interval='1d')[['Open', 'High', 'Low', 'Close', 'Volume']]
-    tickerDf_lag1d  = tickerDf - tickerDf.shift(1)
-    tickerDf_Change = tickerDf_lag1d / tickerDf * 100
-    tickerDf_Change.columns += '_pcent'
-    
-    df = pd.concat([tickerDf.Close, tickerDf_Change.Close_pcent], axis=1)
-    setattr(df, 'ticker', args.symbol)
-    fig = plot_(df, show=True)
-    task.get_logger().report_plotly(title='finance', series=args.symbol, iteration=0, figure=fig)
-
+    setattr(tickerDf, 'ticker', args[0].symbol)
+    process(param=parameters, df=tickerDf, symbol=args[0].symbol, attrib='Close', plot=True)
     return
-
 
 def plot_(df, show=False):
     import plotly.io as pio
@@ -41,6 +40,38 @@ def plot_(df, show=False):
     if show: fig.show()
 
     return fig
+
+def process(param, df, symbol, attrib='Close', shift=1, plot=False):
+    from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LinearRegression, Ridge
+    from sklearn.svm import SVR
+    model = None
+    df_valid      = df[-30:]
+    df_process    = df[:-30]
+    df_lag1d = df_process - df_process.shift(shift)
+    df_change = df_lag1d / df_process * 100
+    df_change.columns += '_pcent'
+    y = df_change[1:][attrib+'_pcent']
+    X = df_change[1:].drop(y.name, axis=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+    symbol = getattr(df, 'ticker')
+    df_plot = pd.concat([df_process[attrib], df_change[attrib+'_pcent']], axis=1)
+    setattr(df_plot, 'ticker', symbol)
+    fig = plot_(df_plot, show=plot)
+    task.get_logger().report_plotly(title='finance', series=symbol, iteration=0, figure=fig)
+
+    for p in param:
+        if True == param[p]:
+            if 'LinearRegression' == p:
+                model = LinearRegression(fit_intercept=False, normalize=False)
+            elif 'Ridge' == p:
+                model = Ridge()
+            elif 'SVR' == p:
+                model = SVR()
+            else:
+                continue
+    return
+
 
 #%%
 if __name__ == '__main__':
