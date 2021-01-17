@@ -8,7 +8,6 @@ Created on Fri Jan 15 19:39:37 2021
 import argparse
 import yfinance as yf
 import pandas as pd
-import plotly.express as px
 from clearml import Task
 
 task = Task.init(project_name='first ClearML steps', task_name='finance')
@@ -28,11 +27,12 @@ def main():
                                             description='set which regressor to run')
     tickerData      = yf.Ticker(args[0].symbol)
     tickerDf        = tickerData.history(period='max', interval='1d')[['Open', 'High', 'Low', 'Close', 'Volume']]
-    setattr(tickerDf, 'ticker', args[0].symbol)
+
     process(param=parameters, df=tickerDf, symbol=args[0].symbol, attrib='Close', plot=True)
     return
 
 def plot_(df, show=False):
+    import plotly.express as px
     import plotly.io as pio
     pio.renderers.default='browser'
     #pio.renderers.default='svg'
@@ -51,11 +51,18 @@ def process(param, df, symbol, attrib='Close', shift=1, plot=False):
     df_lag1d = df_process - df_process.shift(shift)
     df_change = df_lag1d / df_process * 100
     df_change.columns += '_pcent'
-    y = df_change[1:][attrib+'_pcent']
-    X = df_change[1:].drop(y.name, axis=1)
+    df_change = df_change[1:]       # remove first row containing NaN
+    df_process = df_process[1:]
+
+    y = df_change[attrib+'_pcent']
+    X = df_change.drop(y.name, axis=1)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
-    symbol = getattr(df, 'ticker')
+    assert (0 == X_train.isna().sum().sum())
+    assert (0 == y.isna().sum())
+
     df_plot = pd.concat([df_process[attrib], df_change[attrib+'_pcent']], axis=1)
+    df_plot.index = df_plot.index.astype(str)
+    assert (0 == df_plot.isna().sum().sum())
     setattr(df_plot, 'ticker', symbol)
     fig = plot_(df_plot, show=plot)
     task.get_logger().report_plotly(title='finance', series=symbol, iteration=0, figure=fig)
