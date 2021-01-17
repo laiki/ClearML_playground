@@ -16,6 +16,7 @@ task = Task.init(project_name='first ClearML steps', task_name='finance')
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--symbol', help='symbol used for regression', default='AAPL')
+    parser.add_argument('--plot', help='bool to control if plotly should open a browser', default=False)
     args = parser.parse_known_args()
 
     parameters = {
@@ -29,14 +30,14 @@ def main():
     tickerData      = yf.Ticker(args[0].symbol)
     tickerDf        = tickerData.history(period='max', interval='1d')[['Open', 'High', 'Low', 'Close', 'Volume']]
 
-    process(param=parameters, df=tickerDf, symbol=args[0].symbol, attrib='Close', plot=True)
+    process(param=parameters, df=tickerDf, symbol=args[0].symbol, attrib='Close', plot=args[0].plot)
     return
 
 def plot_(df, show=False):
     import plotly.express as px
     import plotly.io as pio
     #pio.renderers.default='browser'
-    pio.renderers.default='svg'
+    pio.renderers.default='png'
     fig = px.line(df, title=getattr(df, 'ticker'))
     if show: fig.show()
 
@@ -88,7 +89,7 @@ def process(param, df, symbol, attrib='Close', shift=1, plot=False):
 
             assert (0 == res_test.isna().sum().sum())
             setattr(res_test, 'ticker', symbol)
-            fig = plot_(res_test, show=True)
+            fig = plot_(res_test, show=plot)
             task.get_logger().report_plotly(title='finance', series=f'{p}: reality vs prediction',
                                             iteration=iteration, figure=fig)
             mse = mean_squared_error(y_test, y_pred)
