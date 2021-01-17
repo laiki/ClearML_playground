@@ -35,8 +35,8 @@ def main():
 def plot_(df, show=False):
     import plotly.express as px
     import plotly.io as pio
-    pio.renderers.default='browser'
-    #pio.renderers.default='svg'
+    #pio.renderers.default='browser'
+    pio.renderers.default='svg'
     fig = px.line(df, title=getattr(df, 'ticker'))
     if show: fig.show()
 
