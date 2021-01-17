@@ -39,7 +39,6 @@ def plot_(df, show=False):
     pio.renderers.default='browser'
     #pio.renderers.default='png'
     fig = px.line(df, title=getattr(df, 'ticker'))
-    print(f'inside plot, show={show}, runninig locally {task.running_locally()}')
     if show:
         if task.running_locally():
             fig.show()
