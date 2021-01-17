@@ -23,7 +23,8 @@ def main():
         'Ridge': False,
         'SVR': False,
     }
-    parameters = task.connect_configuration(configuration=parameters, name='regressor selection',
+    parameters = task.connect_configuration(configuration=parameters,
+                                            name='regressor selection',
                                             description='set which regressor to run')
     tickerData      = yf.Ticker(args[0].symbol)
     tickerDf        = tickerData.history(period='max', interval='1d')[['Open', 'High', 'Low', 'Close', 'Volume']]
