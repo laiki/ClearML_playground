@@ -16,7 +16,7 @@ task = Task.init(project_name='first ClearML steps', task_name='finance')
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--symbol', help='symbol used for regression', default='AAPL')
-    parser.add_argument('--plot', help='bool to control if plotly should open a browser', default=False)
+    parser.add_argument('--plot', help='bool to control if plotly should open a browser', default=True)
     args = parser.parse_known_args()
 
     parameters = {
@@ -36,10 +36,13 @@ def main():
 def plot_(df, show=False):
     import plotly.express as px
     import plotly.io as pio
-    #pio.renderers.default='browser'
-    pio.renderers.default='png'
+    pio.renderers.default='browser'
+    #pio.renderers.default='png'
     fig = px.line(df, title=getattr(df, 'ticker'))
-    if show: fig.show()
+    print(f'inside plot, show={show}, runninig locally {task.running_locally()}')
+    if show:
+        if task.running_locally():
+            fig.show()
 
     return fig
 
