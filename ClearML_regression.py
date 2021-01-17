@@ -45,6 +45,7 @@ def process(param, df, symbol, attrib='Close', shift=1, plot=False):
     from sklearn.model_selection import train_test_split
     from sklearn.linear_model import LinearRegression, Ridge
     from sklearn.svm import SVR
+    from sklearn.metrics import mean_squared_error
     model = None
     df_valid      = df[-30:]
     df_process    = df[:-30]
@@ -77,6 +78,17 @@ def process(param, df, symbol, attrib='Close', shift=1, plot=False):
                 model = SVR()
             else:
                 continue
+            model.fit(X_train, y_train)
+            y_pred = pd.DataFrame(model.predict(X_test), index=y_test.index, columns=[y.name + '_predicted'])
+            res_test = pd.concat([y_test, y_pred], axis=1)
+            assert (0 == res_test.isna().sum().sum())
+            setattr(res_test, 'ticker', symbol)
+            fig = plot_(res_test, show=True)
+            task.get_logger().report_plotly(title='finance', series='reality vs prediction', iteration=0, figure=fig)
+
+        mse = mean_squared_error(y_test, y_pred)
+        print(f'{p} mean squared error: {round(mse, 3)} ')
+
     return
 
 
