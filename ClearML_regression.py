@@ -79,6 +79,8 @@ def process(param, df, symbol, attrib='Close', shift=1, plot=False):
             else:
                 continue
             model.fit(X_train, y_train)
+
+            y_test.index = y_test.index.astype(str)
             y_pred = pd.DataFrame(model.predict(X_test), index=y_test.index, columns=[y.name + '_predicted'])
             res_test = pd.concat([y_test, y_pred], axis=1)
 
