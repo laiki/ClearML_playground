@@ -8,7 +8,7 @@ sudo systemctl stop docker.service
 sleep 2
 sudo apt-get remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli docker-compose
 sleep 2
-sudo systemctl start docker.service
+
 
 #now the istallation begins...
 #alternatively docker.com provides an easy way of istallation by:
@@ -60,6 +60,7 @@ sudo usermod -aG docker $USER
 
 #Check if the tools needed are available by calling them requesting their version information e.g. by `docker --version` and `docker-compose --version`. Any docker installation instruction I have seen so far are ending with a test getting and running the hello-world image, so why not doing the same, but try it without sudoing it ;)
 
+sudo systemctl start docker.service
 docker run hello-world
 #If you don't see the message "Hello from Docker!" you will need to double check if you followed the above instructions and repeat them.
 
